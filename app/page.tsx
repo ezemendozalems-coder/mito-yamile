@@ -4,8 +4,8 @@ import { HeroSection } from "@/components/home/hero-section"
 import { FeaturedBlocks } from "@/components/home/featured-blocks"
 import { AboutPreview } from "@/components/home/about-preview"
 import { HowToBuy } from "@/components/home/how-to-buy"
-import { FaqSection } from "@/components/home/faq-section"
-import { CtaSection } from "@/components/home/cta-section"
+import { FAQSection } from "@/components/home/faq-section"
+import { CTASection } from "@/components/home/cta-section"
 
 export default function HomePage() {
   return (
@@ -16,8 +16,8 @@ export default function HomePage() {
         <FeaturedBlocks />
         <AboutPreview />
         <HowToBuy />
-        <FaqSection />
-        <CtaSection />
+        <FAQSection />
+        <CTASection />
       </main>
       <Footer />
     </>
