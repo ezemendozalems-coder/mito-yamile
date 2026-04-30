@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Trompo / spinning top minimalista -->
+  <!-- Cuerpo del trompo -->
+  <ellipse cx="16" cy="11" rx="10" ry="7" fill="#1EA7E1"/>
+  <!-- Franja decorativa -->
+  <ellipse cx="16" cy="11" rx="10" ry="7" fill="none" stroke="#FFC400" stroke-width="2.5" stroke-dasharray="8 6"/>
+  <!-- Parte inferior (punta) -->
+  <path d="M7 15 Q16 30 25 15" fill="#0B3C5D"/>
+  <!-- Punta del trompo -->
+  <circle cx="16" cy="28" r="2" fill="#FFC400"/>
+  <!-- Perilla superior -->
+  <rect x="13" y="3" width="6" height="4" rx="2" fill="#0B3C5D"/>
+  <circle cx="16" cy="3" r="2" fill="#FFC400"/>
+</svg>
