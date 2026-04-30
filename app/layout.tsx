@@ -1,17 +1,21 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import "./globals.css"
+import { Inter } from "next/font/google"
 
-export default async function AdminLayout({
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata = {
+  title: "MITO Yamile",
+  description: "Catálogo de calzado por mayor",
+}
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  return <>{children}</>
+  return (
+    <html lang="es">
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
 }
