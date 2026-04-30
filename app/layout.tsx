@@ -8,6 +8,8 @@ export const metadata = {
   description: "Catálogo de calzado por mayor",
 }
 
+import { Providers } from "@/components/providers"
+
 export default function RootLayout({
   children,
 }: {
@@ -15,7 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }
