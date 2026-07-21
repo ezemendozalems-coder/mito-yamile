@@ -72,19 +72,43 @@ export function ImageManager() {
   const load = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const [{ data: imgs }, { data: prods }] = await Promise.all([
-      supabase
-        .from("product_images")
-        .select("id, product_code, image_url, storage_path, original_name, is_main, sort_order")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("products")
-        .select("code, name, category")
-        .order("name", { ascending: true })
-        .limit(2000),
+
+    // Supabase/PostgREST caps a response at 1000 rows, so paginate via
+    // .range() to make sure every row is loaded, not just the first 1000.
+    const PAGE_SIZE = 1000
+    async function fetchAll<T>(
+      queryFactory: (from: number, to: number) => PromiseLike<{ data: T[] | null }>
+    ): Promise<T[]> {
+      const all: T[] = []
+      let from = 0
+      while (true) {
+        const { data: page } = await queryFactory(from, from + PAGE_SIZE - 1)
+        if (!page || page.length === 0) break
+        all.push(...page)
+        if (page.length < PAGE_SIZE) break
+        from += PAGE_SIZE
+      }
+      return all
+    }
+
+    const [imgs, prods] = await Promise.all([
+      fetchAll<ProductImage>((from, to) =>
+        supabase
+          .from("product_images")
+          .select("id, product_code, image_url, storage_path, original_name, is_main, sort_order")
+          .order("created_at", { ascending: false })
+          .range(from, to)
+      ),
+      fetchAll<{ code: string; name: string; category: string }>((from, to) =>
+        supabase
+          .from("products")
+          .select("code, name, category")
+          .order("name", { ascending: true })
+          .range(from, to)
+      ),
     ])
-    setImages(imgs ?? [])
-    setProducts(prods ?? [])
+    setImages(imgs)
+    setProducts(prods)
     setLoading(false)
   }, [])
 

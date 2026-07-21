@@ -30,14 +30,26 @@ export function ProductsEditor() {
   async function loadProducts() {
     setLoading(true)
     try {
-      const { data: dbProducts, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("code")
+      // Supabase/PostgREST caps a response at 1000 rows, so paginate via
+      // .range() to make sure every product is loaded, not just the first 1000.
+      const PAGE_SIZE = 1000
+      const dbProducts: Product[] = []
+      let from = 0
+      while (true) {
+        const { data: page, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("code")
+          .range(from, from + PAGE_SIZE - 1)
 
-      if (error) throw error
+        if (error) throw error
+        if (!page || page.length === 0) break
+        dbProducts.push(...page)
+        if (page.length < PAGE_SIZE) break
+        from += PAGE_SIZE
+      }
 
-      setAllProducts(dbProducts || [])
+      setAllProducts(dbProducts)
     } catch (error) {
       console.error("[v0] Error loading products:", error)
       setAllProducts([])

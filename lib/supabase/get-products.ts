@@ -1,5 +1,31 @@
 import { createClient } from "@/lib/supabase/client"
 
+const PAGE_SIZE = 1000
+
+/**
+ * Supabase/PostgREST caps responses at 1000 rows by default, so any table
+ * that can grow past that needs explicit pagination via .range() or rows
+ * silently get dropped off the end.
+ */
+async function fetchAllRows<T>(
+  queryFactory: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>
+): Promise<T[]> {
+  const all: T[] = []
+  let from = 0
+  while (true) {
+    const { data, error } = await queryFactory(from, from + PAGE_SIZE - 1)
+    if (error) {
+      console.error("[fetchAllRows] Error:", error)
+      break
+    }
+    if (!data || data.length === 0) break
+    all.push(...data)
+    if (data.length < PAGE_SIZE) break
+    from += PAGE_SIZE
+  }
+  return all
+}
+
 export interface Product {
   code: string
   name: string
@@ -21,22 +47,25 @@ export interface Category {
 export async function fetchProducts(): Promise<Product[]> {
   const supabase = createClient()
 
-  const [{ data: prods, error }, { data: images }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("code, name, category, price_mayor, price_bulto")
-      .order("name", { ascending: true }),
-    supabase
-      .from("product_images")
-      .select("product_code, image_url, is_main, sort_order")
-      .not("product_code", "is", null)
-      .order("sort_order", { ascending: true }),
+  const [prods, images] = await Promise.all([
+    fetchAllRows<{ code: string; name: string; category: string; price_mayor: number; price_bulto: number }>(
+      (from, to) =>
+        supabase
+          .from("products")
+          .select("code, name, category, price_mayor, price_bulto")
+          .order("name", { ascending: true })
+          .range(from, to)
+    ),
+    fetchAllRows<{ product_code: string; image_url: string; is_main: boolean; sort_order: number }>(
+      (from, to) =>
+        supabase
+          .from("product_images")
+          .select("product_code, image_url, is_main, sort_order")
+          .not("product_code", "is", null)
+          .order("sort_order", { ascending: true })
+          .range(from, to)
+    ),
   ])
-
-  if (error) {
-    console.error("[fetchProducts] Error:", error)
-    return []
-  }
 
   // Build a map: product_code -> { main url, all urls }
   const imageMap = new Map<string, { main: string; all: string[] }>()
